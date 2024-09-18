@@ -40,20 +40,19 @@ $(document).ready(function () {
             left: 'resourceTimeGridDay,resourceTimeGridThreeDay',
             center: 'title',
             right: 'prev,next'
-    },
-    views: {
-      resourceTimeGridThreeDay: {
-        type: 'resourceTimeGrid',
-        duration: { days: 3 },
-        buttonText: '3 Days'
-      },
-        
-      resourceTimeGridDay: {
-        type: 'resourceTimeGrid',
-        duration: { days: 1 },
-        buttonText: '1 Day'
-      }
-    },
+        },
+        views: {
+          resourceTimeGridThreeDay: {
+            type: 'resourceTimeGrid',
+            duration: { days: 3 },
+            buttonText: '3 Days'
+          },
+          resourceTimeGridDay: {
+            type: 'resourceTimeGrid',
+            duration: { days: 1 },
+            buttonText: '1 Day'
+          }
+        },
         dayMinWidth: 150, // Set column width
         height: 'auto',
         slotMinTime: '07:00',
@@ -130,27 +129,29 @@ $(document).ready(function () {
     function processEvents(events) {
         const calendarEvents = [];
         events.forEach(event => {
-            event.timeMatrix.forEach(timeMatrix => {
-                Object.entries(timeMatrix.timeslots).forEach(([date, slots]) => {
-                    slots.forEach(slot => {
-                        const startDateTime = `${date}T${slot}`;
-                        const endDateTime = luxon.DateTime.fromISO(startDateTime).plus({ minutes: parseInt(event.duration) }).toISO();
-                        calendarEvents.push({
-                            id: event.id,
-                            title: event.name,
-                            start: startDateTime,
-                            end: endDateTime,
-                            resourceId: timeMatrix.provider_id,
-                            description: event.description || '',
-                            bookings_limit: event.bookings_limit, 
-                            category: event.categories[0],
-                            rawStartTime: startDateTime,
-                            rawEndTime: endDateTime,
-                            displaySlots: ['1', '2', '3', '5', '6', '7', '9'].includes(event.categories[0])
+            if (['1', '2', '5', '6', '9', '11', '12'].includes(event.categories[0])) { // Filter events by categories
+                event.timeMatrix.forEach(timeMatrix => {
+                    Object.entries(timeMatrix.timeslots).forEach(([date, slots]) => {
+                        slots.forEach(slot => {
+                            const startDateTime = `${date}T${slot}`;
+                            const endDateTime = luxon.DateTime.fromISO(startDateTime).plus({ minutes: parseInt(event.duration) }).toISO();
+                            calendarEvents.push({
+                                id: event.id,
+                                title: event.name,
+                                start: startDateTime,
+                                end: endDateTime,
+                                resourceId: timeMatrix.provider_id,
+                                description: event.description || '',
+                                bookings_limit: event.bookings_limit, 
+                                category: event.categories[0],
+                                rawStartTime: startDateTime,
+                                rawEndTime: endDateTime,
+                                displaySlots: ['1', '2', '3', '5', '6', '7', '9'].includes(event.categories[0])
+                            });
                         });
                     });
                 });
-            });
+            }
         });
         console.log("Processed events for calendar:", calendarEvents);
         return calendarEvents;
@@ -322,7 +323,7 @@ $(document).ready(function () {
 
     function getResourceLogo(resourceId) {
         const resource = getHardcodedResources().find(r => r.id === resourceId);
-        return resource && resource.logo ? `image-files/${resource.logo}` : null;
+        return resource && resource.logo ? `${resource.logo}` : null;  // Updated to look in the same directory
     }
 
     function formatTimeToAEST(date) {
